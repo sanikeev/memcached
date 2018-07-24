@@ -2,5 +2,6 @@ language: php
 php:
   - 7.2
 before_script:
+  - apt install memcached
   - composer install
-script: vendor/bin/phpunit --bootstrap=vendor/autload.php tests/
+script: vendor/bin/phpunit --bootstrap=vendor/autoload.php tests/
