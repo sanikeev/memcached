@@ -8,6 +8,8 @@
 
 namespace Sanikeev\Memcached;
 
+use Sanikeev\Memcached\Exception\ConnectionException;
+
 class Client implements ClientInterface
 {
 
@@ -19,7 +21,7 @@ class Client implements ClientInterface
         $err = null;
         $socket = fsockopen($host, $port, $err);
         if (!$socket || $err) {
-            return false;
+            throw new ConnectionException();
         }
         $this->socket = $socket;
         $this->isAsync = $async;
