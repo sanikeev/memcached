@@ -8,7 +8,6 @@
 
 namespace Sanikeev\Memcached\Exception;
 
-
 class HostNotSetException extends \Exception
 {
 

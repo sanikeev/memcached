@@ -25,7 +25,8 @@ class MemcachedClientTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue((bool) $result, "Error with connection");
     }
 
-    public function testCreateAsyncConnection() {
+    public function testCreateAsyncConnection()
+    {
         $result = new Client(['host' => 'localhost', 'port' => 11211, 'async' => true ]);
         $this->assertTrue((bool) $result, "Error with connection");
     }
@@ -59,7 +60,8 @@ class MemcachedClientTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(trim($response), Client::RESPONSE_STORED, "Error with sending payload");
     }
 
-    public function testCheckEndSignal() {
+    public function testCheckEndSignal()
+    {
         $str = "END";
         $result = $this->client->isEnd($str);
         $this->assertTrue($result, "Error checking end signal");

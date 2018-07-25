@@ -41,7 +41,7 @@ class Client implements ClientInterface
      */
     public function __construct($options)
     {
-        if(!isset($options['host'])) {
+        if (!isset($options['host'])) {
             throw new HostNotSetException();
         }
         if (!isset($options['port'])) {
@@ -49,7 +49,7 @@ class Client implements ClientInterface
         }
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 
-        if (!socket_connect($socket,$options['host'], $options['port'])) {
+        if (!socket_connect($socket, $options['host'], $options['port'])) {
             throw new ConnectionException();
         }
         if (isset($options['async']) && $options['async'] == true) {
@@ -114,7 +114,7 @@ class Client implements ClientInterface
         socket_write($this->socket, $payload);
         $response = '';
         do {
-            $buffer = socket_read($this->socket,2048);
+            $buffer = socket_read($this->socket, 2048);
             $response .= $buffer;
             $condition = $buffer != "" || $buffer !== false;
             if ($this->isEnd($buffer)) {
@@ -129,9 +129,10 @@ class Client implements ClientInterface
      * @param $str
      * @return bool
      */
-    public function isEnd($str) {
+    public function isEnd($str)
+    {
         foreach ($this->endingSignals as $end) {
-            if(preg_match("#{$end}#imu", $str)) {
+            if (preg_match("#{$end}#imu", $str)) {
                 return true;
             }
         }
