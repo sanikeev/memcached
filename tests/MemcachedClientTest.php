@@ -25,6 +25,11 @@ class MemcachedClientTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue((bool) $result, "Error with connection");
     }
 
+    public function testCreateAsyncConnection() {
+        $result = new Client(['host' => 'localhost', 'port' => 11211, 'async' => true ]);
+        $this->assertTrue((bool) $result, "Error with connection");
+    }
+
     public function testSetVar()
     {
         $status = $this->client->set("testKey", "testVal", 60);
@@ -52,5 +57,11 @@ class MemcachedClientTest extends \PHPUnit\Framework\TestCase
         $payload = sprintf("set %s 0 %d %d\r\n%s\r\n", $key, $expires, mb_strlen($data), $data);
         $response = $this->client->send($payload);
         $this->assertEquals(trim($response), Client::RESPONSE_STORED, "Error with sending payload");
+    }
+
+    public function testCheckEndSignal() {
+        $str = "END";
+        $result = $this->client->isEnd($str);
+        $this->assertTrue($result, "Error checking end signal");
     }
 }

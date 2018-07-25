@@ -9,6 +9,9 @@
 namespace Sanikeev\Memcached;
 
 use Sanikeev\Memcached\Exception\ConnectionException;
+use Sanikeev\Memcached\Exception\HostNotSetException;
+use Sanikeev\Memcached\Exception\PortNotSetException;
+use Sanikeev\Memcached\Exception\SetDataException;
 
 class Client implements ClientInterface
 {
@@ -18,38 +21,46 @@ class Client implements ClientInterface
     const RESPONSE_ERROR = 'ERROR';
     const RESPONSE_STORED = 'STORED';
     const RESPONSE_DELETED = 'DELETED';
+    const RESPONSE_END = 'END';
 
+    protected $endingSignals = [
+        self::RESPONSE_STORED,
+        self::RESPONSE_DELETED,
+        self::RESPONSE_ERROR,
+        self::RESPONSE_END
+    ];
+
+    /**
+     * Client constructor.
+     * @param $options
+     *  Сюда можно передать следующие опции
+     *      $host - адрес хоста
+     *      $port - порт хоста
+     *      $async - не обязательно, включает неблокирующий режим
+     * @throws ConnectionException
+     */
     public function __construct($options)
     {
-        $err = null;
-        $socket = fsockopen($options['host'], $options['port'], $err);
-        if (!$socket || $err) {
+        if(!isset($options['host'])) {
+            throw new HostNotSetException();
+        }
+        if (!isset($options['port'])) {
+            throw new PortNotSetException();
+        }
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+
+        if (!socket_connect($socket,$options['host'], $options['port'])) {
             throw new ConnectionException();
+        }
+        if (isset($options['async']) && $options['async'] == true) {
+            socket_set_nonblock($socket);
         }
         $this->socket = $socket;
     }
 
-    public function getSocket()
-    {
-        return $this->socket;
-    }
-
-    public function __destruct()
-    {
-        if (!is_resource($this->socket)) {
-            return ;
-        }
-        $this->close();
-    }
-
-    public function __sleep()
-    {
-        if (!is_resource($this->socket)) {
-            return ;
-        }
-        $this->close();
-    }
-
+    /**
+     * {@inheritdoc}
+     */
     public function set($key, $val, $expires = 0)
     {
         $data = serialize($val);
@@ -59,10 +70,13 @@ class Client implements ClientInterface
             return true;
         }
         if (trim($response) == self::RESPONSE_ERROR) {
-            return false;
+            throw new SetDataException();
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function get($key)
     {
         $payload = sprintf("get %s\r\n", $key);
@@ -76,6 +90,9 @@ class Client implements ClientInterface
         return false;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function delete($key)
     {
         $payload = sprintf("delete %s\r\n", $key);
@@ -87,15 +104,38 @@ class Client implements ClientInterface
         return false;
     }
 
-    public function close()
-    {
-        fclose($this->socket);
-    }
-
+    /**
+     * Отправляет данные на сокет и принимает ответ
+     * @param string $payload
+     * @return string
+     */
     public function send($payload)
     {
-        fwrite($this->socket, $payload);
-        $response = fread($this->socket, 1024 * 100);
+        socket_write($this->socket, $payload);
+        $response = '';
+        do {
+            $buffer = socket_read($this->socket,2048);
+            $response .= $buffer;
+            $condition = $buffer != "" || $buffer !== false;
+            if ($this->isEnd($buffer)) {
+                break;
+            }
+        } while ($condition);
         return $response;
+    }
+
+    /**
+     * Проверяет окончание команды
+     * @param $str
+     * @return bool
+     */
+    public function isEnd($str) {
+        foreach ($this->endingSignals as $end) {
+            if(preg_match("#{$end}#imu", $str)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
