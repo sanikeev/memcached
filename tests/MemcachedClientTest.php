@@ -8,45 +8,49 @@
 
 namespace Test;
 
+use Sanikeev\Memcached\Client;
+
 class MemcachedClientTest extends \PHPUnit\Framework\TestCase
 {
     protected $client;
 
     public function setUp()
     {
-        $this->client = new \Sanikeev\Memcached\Client();
+        $this->client = new Client(['host' => 'localhost', 'port' => 11211]);
     }
     
     public function testCreateConnection()
     {
-        $host = "localhost";
-        $port = 11211;
-        $result = $this->client->connect($host, $port);
+        $result = new Client(['host' => 'localhost', 'port' => 11211]);
         $this->assertTrue((bool) $result, "Error with connection");
-        $this->client->close();
     }
 
     public function testSetVar()
     {
-        $this->client->connect();
         $status = $this->client->set("testKey", "testVal", 60);
         $this->assertTrue($status, "Error setting data");
-        $this->client->close();
     }
 
     public function testGetVar()
     {
-        $this->client->connect();
         $data = $this->client->get("testKey");
         $this->assertEquals("testVal", $data);
-        $this->client->close();
     }
 
     public function testDeleteVar()
     {
-        $this->client->connect();
         $status = $this->client->delete("testKey");
         $this->assertTrue($status, "Error with deleting key");
-        $this->client->close();
     }
+
+    public function testSend() {
+        $val = '123';
+        $expires = 5;
+        $key = 'testKey';
+        $data = serialize($val);
+        $payload = sprintf("set %s 0 %d %d\r\n%s\r\n", $key, $expires, mb_strlen($data), $data);
+        $response = $this->client->send($payload);
+        $this->assertEquals(trim($response), Client::RESPONSE_STORED, "Error with sending payload");
+    }
+
 }
