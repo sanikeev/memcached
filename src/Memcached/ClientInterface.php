@@ -8,10 +8,9 @@
 
 namespace Sanikeev\Memcached;
 
-
 interface ClientInterface
 {
-    public function connect($host = 'localhost', $port = 11211, $async = false);
+    public function connect($host = 'localhost', $port = 11211);
 
     public function set($key, $value, $expires);
 
@@ -20,5 +19,4 @@ interface ClientInterface
     public function delete($key);
 
     public function close();
-
 }

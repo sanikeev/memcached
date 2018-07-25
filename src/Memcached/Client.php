@@ -14,9 +14,12 @@ class Client implements ClientInterface
 {
 
     protected $socket;
-    protected $isAsync;
 
-    public function connect($host = 'localhost', $port = '11211', $async = false)
+    const RESPONSE_ERROR = 'ERROR';
+    const RESPONSE_STORED = 'STORED';
+    const RESPONSE_DELETED = 'DELETED';
+
+    public function connect($host = 'localhost', $port = '11211')
     {
         $err = null;
         $socket = fsockopen($host, $port, $err);
@@ -24,7 +27,6 @@ class Client implements ClientInterface
             throw new ConnectionException();
         }
         $this->socket = $socket;
-        $this->isAsync = $async;
         return true;
     }
 
@@ -32,18 +34,12 @@ class Client implements ClientInterface
     {
         $data = serialize($val);
         $payload = sprintf("set %s 0 %d %d\r\n%s\r\n", $key, $expires, mb_strlen($data), $data);
-        if ($this->isAsync) {
-            $payload = sprintf("set %s 0 %d %d noreply\r\n%s\r\n", $key, $expires, mb_strlen($data), $data);
-        }
         fwrite($this->socket, $payload);
         $response = fread($this->socket, 1024 * 100);
-        if ($this->isAsync) {
+        if (trim($response) == self::RESPONSE_STORED) {
             return true;
         }
-        if (trim($response) == "STORED") {
-            return true;
-        }
-        if (trim($response) == "ERROR") {
+        if (trim($response) == self::RESPONSE_ERROR) {
             return false;
         }
     }
@@ -53,28 +49,21 @@ class Client implements ClientInterface
         $payload = sprintf("get %s\r\n", $key);
         fwrite($this->socket, $payload);
         $response = fread($this->socket, 1024 * 100);
-        $regExp = sprintf("#VALUE\s%s\s\d+\s\d+\s+(.*?)\s+END\s+#is",$key);
+        $regExp = sprintf("#VALUE\s%s\s\d+\s\d+\s+(.*?)\s+END\s+#is", $key);
         $match = [];
         if (preg_match($regExp, $response, $match)) {
             $data = unserialize($match[1]);
             return $data;
         }
         return false;
-
     }
 
     public function delete($key)
     {
         $payload = sprintf("delete %s\r\n", $key);
-        if ($this->isAsync) {
-            $payload = sprintf("delete %s noreply\r\n", $key);
-        }
         fwrite($this->socket, $payload);
         $response = fread($this->socket, 1024 * 100);
-        if ($this->isAsync) {
-            return true;
-        }
-        if (trim($response) == "DELETED") {
+        if (trim($response) == self::RESPONSE_DELETED) {
             return true;
         }
 

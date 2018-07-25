@@ -9,4 +9,6 @@ services:
 before_script:
   - composer install
 
-script: vendor/bin/phpunit --bootstrap=vendor/autoload.php tests/
+script:
+  - vendor/bin/phpcs --standard=PSR2 src/ tests/
+  - vendor/bin/phpunit --bootstrap=vendor/autoload.php tests/

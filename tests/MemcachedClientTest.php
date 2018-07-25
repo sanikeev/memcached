@@ -8,7 +8,6 @@
 
 namespace Test;
 
-
 class MemcachedClientTest extends \PHPUnit\Framework\TestCase
 {
     protected $client;
@@ -23,11 +22,12 @@ class MemcachedClientTest extends \PHPUnit\Framework\TestCase
         $host = "localhost";
         $port = 11211;
         $result = $this->client->connect($host, $port);
-        $this->assertTrue((bool) $result,"Error with connection");
+        $this->assertTrue((bool) $result, "Error with connection");
         $this->client->close();
     }
 
-    public function testSetVar() {
+    public function testSetVar()
+    {
         $this->client->connect();
         $status = $this->client->set("testKey", "testVal", 60);
         $this->assertTrue($status, "Error setting data");
@@ -46,18 +46,7 @@ class MemcachedClientTest extends \PHPUnit\Framework\TestCase
     {
         $this->client->connect();
         $status = $this->client->delete("testKey");
-        $this->assertTrue($status,"Error with deleting key");
+        $this->assertTrue($status, "Error with deleting key");
         $this->client->close();
-    }
-
-    public function testAsyncSetVar()
-    {
-
-
-    }
-
-    public function testAsyncDeleteVar()
-    {
-
     }
 }

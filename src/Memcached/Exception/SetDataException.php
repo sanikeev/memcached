@@ -3,18 +3,19 @@
  * Created by PhpStorm.
  * User: user
  * Date: 25.07.18
- * Time: 0:04
+ * Time: 11:49
  */
 
 namespace Sanikeev\Memcached\Exception;
 
-class ConnectionException extends \Exception
+class SetDataException extends \Exception
 {
+
     /**
-     * @return mixed
+     * @param mixed $message
      */
     public function setMessage()
     {
-        $this->message = "Ошибка соединения с свервером Memcached";
+        $this->message = "Ошибка запсиси в memcached";
     }
 }
