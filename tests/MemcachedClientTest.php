@@ -43,7 +43,8 @@ class MemcachedClientTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($status, "Error with deleting key");
     }
 
-    public function testSend() {
+    public function testSend()
+    {
         $val = '123';
         $expires = 5;
         $key = 'testKey';
@@ -52,5 +53,4 @@ class MemcachedClientTest extends \PHPUnit\Framework\TestCase
         $response = $this->client->send($payload);
         $this->assertEquals(trim($response), Client::RESPONSE_STORED, "Error with sending payload");
     }
-
 }
