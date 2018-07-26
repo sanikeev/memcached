@@ -38,6 +38,8 @@ class Client implements ClientInterface
      *      $port - порт хоста
      *      $async - не обязательно, включает неблокирующий режим
      * @throws ConnectionException
+     * @throws HostNotSetException
+     * @throws PortNotSetException
      */
     public function __construct($options)
     {
