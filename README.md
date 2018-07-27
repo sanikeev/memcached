@@ -1,14 +1,16 @@
-#Простой клиент для memcached
+##Простой клиент для memcached
+
+[![Build Status](https://travis-ci.org/sanikeev/memcached.svg?branch=master)](https://travis-ci.org/sanikeev/memcached)
 
 Нативная реализация основных команд get, set, delete для memcached на php
 
-## Установка
+### Установка
 
 * Клонируйте этот репозиторий
 * Выполните ``` composer install ```
 * Для запуска тестов выполните ``` vendor/bin/phpunit --colors --bootstrap=vendor/autoload.php tests/```
 
-## Примеры использования
+### Примеры использования
 
 Синхронный режим
 
