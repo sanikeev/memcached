@@ -49,13 +49,13 @@ class Client implements ClientInterface
         if (!isset($options['port'])) {
             throw new PortNotSetException();
         }
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        $socket = \socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 
-        if (!socket_connect($socket, $options['host'], $options['port'])) {
+        if (!\socket_connect($socket, $options['host'], $options['port'])) {
             throw new ConnectionException();
         }
         if (isset($options['async']) && $options['async'] == true) {
-            socket_set_nonblock($socket);
+            \socket_set_nonblock($socket);
         }
         $this->socket = $socket;
     }
@@ -65,13 +65,13 @@ class Client implements ClientInterface
      */
     public function set($key, $val, $expires = 0)
     {
-        $data = serialize($val);
-        $payload = sprintf("set %s 0 %d %d\r\n%s\r\n", $key, $expires, mb_strlen($data), $data);
+        $data = \serialize($val);
+        $payload = \sprintf("set %s 0 %d %d\r\n%s\r\n", $key, $expires, mb_strlen($data), $data);
         $response = $this->send($payload);
-        if (trim($response) == self::RESPONSE_STORED) {
+        if (\trim($response) == self::RESPONSE_STORED) {
             return true;
         }
-        if (trim($response) == self::RESPONSE_ERROR) {
+        if (\trim($response) == self::RESPONSE_ERROR) {
             throw new SetDataException();
         }
     }
@@ -81,12 +81,12 @@ class Client implements ClientInterface
      */
     public function get($key)
     {
-        $payload = sprintf("get %s\r\n", $key);
+        $payload = \sprintf("get %s\r\n", $key);
         $response = $this->send($payload);
-        $regExp = sprintf("#VALUE\s%s\s\d+\s\d+\s+(.*?)\s+END\s+#is", $key);
+        $regExp = \sprintf("#VALUE\s%s\s\d+\s\d+\s+(.*?)\s+END\s+#is", $key);
         $match = [];
-        if (preg_match($regExp, $response, $match)) {
-            $data = unserialize($match[1]);
+        if (\preg_match($regExp, $response, $match)) {
+            $data = \unserialize($match[1]);
             return $data;
         }
         return false;
@@ -97,9 +97,9 @@ class Client implements ClientInterface
      */
     public function delete($key)
     {
-        $payload = sprintf("delete %s\r\n", $key);
+        $payload = \sprintf("delete %s\r\n", $key);
         $response = $this->send($payload);
-        if (trim($response) == self::RESPONSE_DELETED) {
+        if (\trim($response) == self::RESPONSE_DELETED) {
             return true;
         }
 
@@ -111,12 +111,12 @@ class Client implements ClientInterface
      * @param string $payload
      * @return string
      */
-    public function send($payload)
+    private function send($payload)
     {
-        socket_write($this->socket, $payload);
+        \socket_write($this->socket, $payload);
         $response = '';
         do {
-            $buffer = socket_read($this->socket, 2048);
+            $buffer = \socket_read($this->socket, 2048);
             $response .= $buffer;
             $condition = $buffer != "" || $buffer !== false;
             if ($this->isEnd($buffer)) {
@@ -131,10 +131,10 @@ class Client implements ClientInterface
      * @param $str
      * @return bool
      */
-    public function isEnd($str)
+    private function isEnd($str)
     {
         foreach ($this->endingSignals as $end) {
-            if (preg_match("#{$end}#imu", $str)) {
+            if (\preg_match("#{$end}#imu", $str)) {
                 return true;
             }
         }

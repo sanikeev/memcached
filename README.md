@@ -8,7 +8,8 @@
 
 * Клонируйте этот репозиторий
 * Выполните ``` composer install ```
-* Для запуска тестов выполните ``` vendor/bin/phpunit --colors --bootstrap=vendor/autoload.php tests/```
+* Затем выполните ` docker build -t memcached-php .`
+* Для запуска тестов выполните ``` sudo docker run -it --rm --name memcached-php-1 memcached-php```
 
 ### Примеры использования
 
@@ -37,12 +38,50 @@
 
 ```php
 <?php
-    $client = new Sanikeev\Memcached\Client([
-        'host' => 'localhost',
-        'port' => 11211,
-        'async' => true
-    ]);
+    $client = new \Sanikeev\Memcached\ClientAsync(['host' => 'localhost', 'port' => 11211]);
+    $arrData = [
+        'a' => 1,
+        'b' => 2,
+        'c' => 3
+    ];
+
+    // запись данных
+    $request = [];
+    foreach ($arrData as $key => $val) {
+       $request[] = $client->request(\Sanikeev\Memcached\ClientAsync::SET_COMMAND, [
+            'key' => $key,
+            'data' => $val,
+            'expires' => 100
+        ]);
+    }
+    // do some long staff
+    sleep(3);
+
+    $result = [];
+    foreach ($request as $item) {
+        $client->response($item, function ($response) use (&$result) {
+            $result[] = $response;
+        });
+    }
+    var_dump($result);
+
+    // получение данных
+    $request = [];
+    foreach ($arrData as $key => $val) {
+        $request[] = $client->request(\Sanikeev\Memcached\ClientAsync::GET_COMMAND, [
+            'key' => $key,
+        ]);
+    }
+    // do some long staff
+    sleep(3);
+
+    $result = [];
+    foreach ($request as $item) {
+        $client->response($item, function ($response) use (&$result) {
+            $result[] = $response;
+        });
+    }
+    var_dump($result);
     
-    // далее вызовы идут как обычно
     
 ```

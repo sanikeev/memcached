@@ -56,14 +56,23 @@ class MemcachedClientTest extends \PHPUnit\Framework\TestCase
         $key = 'testKey';
         $data = serialize($val);
         $payload = sprintf("set %s 0 %d %d\r\n%s\r\n", $key, $expires, mb_strlen($data), $data);
-        $response = $this->client->send($payload);
+
+        $reflection = new \ReflectionClass(get_class($this->client));
+        $method = $reflection->getMethod('send');
+        $method->setAccessible(true);
+
+        $response = $method->invokeArgs($this->client, [$payload]);
         $this->assertEquals(trim($response), Client::RESPONSE_STORED, "Error with sending payload");
     }
 
     public function testCheckEndSignal()
     {
+        $reflection = new \ReflectionClass(get_class($this->client));
+        $method = $reflection->getMethod('isEnd');
+        $method->setAccessible(true);
+
         $str = "END";
-        $result = $this->client->isEnd($str);
+        $result = $method->invokeArgs($this->client, [$str]);
         $this->assertTrue($result, "Error checking end signal");
     }
 }
